@@ -1,7 +1,7 @@
 <?php
 /**
- * Plugin Name: PHP Page Snippets
- * Description: Adds metaboxes to pages for PHP and JavaScript code snippets that run only on that page and allows adding code to functions.php
+ * Plugin Name: Simply Simple Snippets
+ * Description: Easy code injection: Add PHP and JavaScript snippets per-page, plus site-wide PHP functions
  * Version: 1.2.0
  * Author: Allan Delmare
  * License: GPL v2 or later
@@ -12,22 +12,22 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class PHP_Page_Snippets {
-    private $options_page_slug = 'php-snippets-settings';
-    private $option_name = 'php_snippets_functions';
+class Simply_Simple_Snippets {
+    private $options_page_slug = 'simple-snippets-settings';
+    private $option_name = 'simple_snippets_functions';
     
     public function __construct() {
-        // Original page snippet functionality
+        // Per-page PHP snippet functionality
         add_action('add_meta_boxes', array($this, 'add_php_snippet_meta_box'));
         add_action('save_post', array($this, 'save_php_snippet'));
         add_action('the_content', array($this, 'execute_php_snippet'));
         
-        // JavaScript functionality
+        // Per-page JavaScript functionality
         add_action('add_meta_boxes', array($this, 'add_js_snippet_meta_box'));
         add_action('save_post', array($this, 'save_js_snippet'));
         add_action('wp_head', array($this, 'output_js_snippet'), 99); // Priority 99 to load late in head
         
-        // Functions.php snippet functionality
+        // Site-wide PHP functions
         add_action('admin_menu', array($this, 'add_settings_page'));
         add_action('admin_init', array($this, 'register_settings'));
         add_action('init', array($this, 'execute_functions_snippet'));
@@ -139,7 +139,7 @@ class PHP_Page_Snippets {
         if (is_page()) {
             $snippet = get_post_meta(get_the_ID(), '_js_snippet', true);
             if (!empty($snippet)) {
-                echo "\n<!-- Page-specific JavaScript -->\n";
+                echo "\n<!-- Page-specific JavaScript from Simply Simple Snippets -->\n";
                 echo '<script>';
                 echo "\n" . $snippet . "\n";
                 echo '</script>' . "\n";
@@ -150,8 +150,8 @@ class PHP_Page_Snippets {
     // Settings page methods
     public function add_settings_page() {
         add_options_page(
-            'PHP Snippets Settings',
-            'PHP Snippets',
+            'Simply Simple Snippets',
+            'Simple Snippets',
             'manage_options',
             $this->options_page_slug,
             array($this, 'render_settings_page')
@@ -170,12 +170,11 @@ class PHP_Page_Snippets {
     }
 
     public function sanitize_functions_snippet($input) {
-        // Only allow super admins to save function snippets
         if (!current_user_can('manage_options')) {
             add_settings_error(
                 $this->option_name,
                 'insufficient_permissions',
-                'You do not have permission to modify function snippets.'
+                'You do not have permission to modify site-wide functions.'
             );
             return get_option($this->option_name);
         }
@@ -190,14 +189,14 @@ class PHP_Page_Snippets {
         $snippet = get_option($this->option_name, '');
         ?>
         <div class="wrap">
-            <h1>PHP Snippets Settings</h1>
+            <h1>Simply Simple Snippets Settings</h1>
             <form method="post" action="options.php">
                 <?php
                 settings_fields($this->options_page_slug);
                 do_settings_sections($this->options_page_slug);
                 ?>
                 <div class="php-snippets-functions">
-                    <h2>Functions Snippet</h2>
+                    <h2>Site-wide PHP Functions</h2>
                     <p><em>Enter PHP code without <?php echo esc_html('<?php'); ?> tags. This code will run globally like functions.php</em></p>
                     <p><strong>Warning:</strong> Be careful with the code you add here as it will affect your entire site.</p>
                     <textarea name="<?php echo esc_attr($this->option_name); ?>" 
@@ -205,7 +204,7 @@ class PHP_Page_Snippets {
                               style="width: 100%; height: 400px; font-family: monospace;"
                     ><?php echo esc_textarea($snippet); ?></textarea>
                 </div>
-                <?php submit_button('Save Functions Snippet'); ?>
+                <?php submit_button('Save Site-wide Functions'); ?>
             </form>
         </div>
         <?php
@@ -221,7 +220,7 @@ class PHP_Page_Snippets {
                     add_action('admin_notices', function() use ($e) {
                         ?>
                         <div class="notice notice-error">
-                            <p>PHP Snippets Functions Error: <?php echo esc_html($e->getMessage()); ?></p>
+                            <p>Simply Simple Snippets Error: <?php echo esc_html($e->getMessage()); ?></p>
                         </div>
                         <?php
                     });
@@ -232,4 +231,4 @@ class PHP_Page_Snippets {
 }
 
 // Initialize the plugin
-new PHP_Page_Snippets();
+new Simply_Simple_Snippets();
